@@ -1,0 +1,98 @@
+from datetime import datetime
+
+class Post:
+    def __init__(self, text):
+        self.text = text
+        self.user = None
+        self.timestamp = datetime.now()
+    
+    def __str__(self):
+        raise NotImplementedError("Subclasses should implement this!")
+    
+    def get_timestamp(self):
+        return self.timestamp.strftime("%A, %b %d, %Y")
+
+class TextPost(Post):
+    def __init__(self, text):
+        super().__init__(text)
+    
+    def __str__(self):
+        return f'{self.user.first_name} {self.user.last_name}: "{self.text}"\n  {self.get_timestamp()}'
+
+class PicturePost(Post):
+    def __init__(self, text, image_url):
+        super().__init__(text)
+        self.image_url = image_url
+    
+    def __str__(self):
+        return f'{self.user.first_name} {self.user.last_name}: "{self.text}"\n  Pic URL: {self.image_url}\n  {self.get_timestamp()}'
+
+class CheckInPost(Post):
+    def __init__(self, text, latitude, longitude):
+        super().__init__(text)
+        self.latitude = latitude
+        self.longitude = longitude
+    
+    def __str__(self):
+        return f'{self.user.first_name} Checked In: "{self.text}"\n  {self.latitude}, {self.longitude}\n  {self.get_timestamp()}'
+
+class User:
+    def __init__(self, first_name, last_name, email):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.posts = []
+        self.following = []
+    
+    def add_post(self, post):
+        post.user = self
+        self.posts.append(post)
+    
+    def follow(self, user):
+        if user not in self.following:
+            self.following.append(user)
+    
+    def get_timeline(self):
+        timeline = []
+        for user in self.following:
+            timeline.extend(user.posts)
+        return sorted(timeline, key=lambda post: post.timestamp, reverse=True)
+
+    def __str__(self):
+        return f'<User: "{self.first_name} {self.last_name}">'
+
+# Example usage
+john = User("John", "Lennon", "john@rmotr.com")
+paul = User("Paul", "McCartney", "paul@rmotr.com")
+george = User("George", "Harrison", "george@rmotr.com")
+
+john.follow(paul)
+john.follow(george)
+
+paul.add_post(TextPost("Post 1"))
+george.add_post(TextPost("Post 2"))
+paul.add_post(TextPost("Post 3"))
+
+print(john.get_timeline())
+# Output will depend on the current date and time
+
+text_post_1 = TextPost("All you need is love!")
+picture_post_2 = PicturePost("Check my new submarine.", image_url='imgur.com/submarine.jpg')
+checkin_post_3 = CheckInPost("At Abbey Road Studios", latitude="19.111", longitude="-9.2222")
+john.add_post(text_post_1)
+john.add_post(picture_post_2)
+john.add_post(checkin_post_3)
+
+print(text_post_1)
+# Output: John Lennon: "All you need is love!"
+#         Friday, Feb 03, 2017 (or current date)
+
+print(picture_post_2)
+# Output: John Lennon: "Check my new submarine."
+#         Pic URL: imgur.com/submarine.jpg
+#         Friday, Feb 03, 2017 (or current date)
+
+print(checkin_post_3)
+# Output: John Checked In: "At Abbey Road Studios"
+#         19.111, -9.2222
+#         Friday, Feb 03, 2017 (or current date)
